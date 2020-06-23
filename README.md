@@ -5,6 +5,12 @@
 This tool allows cleanup target docker registry. 
 You can define rules of how much tags should be retained in each tag group
 
+### Note
+The tool only remove tags - not blobs in docker registry. To free up space on disk, run:
+```shell script
+docker exec <registry container> bin/registry garbage-collect /etc/docker/registry/config.yml
+```
+
 ## Usage
 
 ```shell script
@@ -61,9 +67,3 @@ repositories:
         retain: 2
 ```
 
-## Notes
-* The tool only remove tags - not blobs in docker registry. 
-  For full cleanup docker registry you should run:
-```shell script
-docker exec <registry container> bin/registry garbage-collect /etc/docker/registry/config.yml
-```
