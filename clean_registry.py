@@ -13,7 +13,7 @@ RULES_FILE = "/etc/cleaner/rules.yml"
 
 registry_host = os.environ["REGISTRY_HOST"]
 registry_user = os.environ["REGISTRY_USER"]
-registry_pass = os.environ["REGISTRY_PASS"]
+registry_password = os.environ["REGISTRY_PASSWORD"]
 dry_run = os.environ.get("DRY_RUN", "false") == "true"
 
 print("{0} Parameters {0}".format("*" * 5))
@@ -23,7 +23,7 @@ print("dry run: {0}".format(dry_run))
 
 
 def _auth(dxf, response):
-    dxf.authenticate(registry_user, registry_pass, response=response)
+    dxf.authenticate(registry_user, registry_password, response=response)
 
 
 def _read_rules():
