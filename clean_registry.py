@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 import json
+import logging
 import os
 import re
 from datetime import datetime
@@ -11,15 +12,18 @@ from requests import HTTPError
 
 RULES_FILE = "/etc/cleaner/rules.yml"
 
+logger = logging.getLogger(__name__)
+logging.basicConfig(level=logging.INFO, format="%(asctime)s: %(message)s")
+
 registry_host = os.environ["REGISTRY_HOST"]
 registry_user = os.environ["REGISTRY_USER"]
 registry_password = os.environ["REGISTRY_PASSWORD"]
 dry_run = os.environ.get("DRY_RUN", "false") == "true"
 
-print("{0} Parameters {0}".format("*" * 5))
-print("host: {0}".format(registry_host))
-print("user: {0}".format(registry_user))
-print("dry run: {0}".format(dry_run))
+logger.info("{0} Parameters {0}".format("*" * 5))
+logger.info("host: {0}".format(registry_host))
+logger.info("user: {0}".format(registry_user))
+logger.info("dry run: {0}".format(dry_run))
 
 
 def _auth(dxf, response):
@@ -53,8 +57,8 @@ def _fetch_tags(dxf):
             )
 
             fetched_aliases[alias] = created
-    except HTTPError as err:
-        print("Error: {0}".format(err))
+    except HTTPError:
+        logger.exception("Error: on load data")
 
     return fetched_aliases
 
@@ -64,14 +68,18 @@ def _clean_tags(dxf, rule, tags):
 
     for tag, created in tags[rule["retain"] :]:
         if dry_run:
-            print('"{0}" [{1:%Y-%m-%d %H:%M:%S}] will be deleted'.format(tag, created))
+            logger.info(
+                '"{0}" [{1:%Y-%m-%d %H:%M:%S}] will be deleted'.format(tag, created)
+            )
         else:
             dxf.del_alias(tag)
-            print('"{0}" [{1:%Y-%m-%d %H:%M:%S}] was deleted'.format(tag, created))
+            logger.info(
+                '"{0}" [{1:%Y-%m-%d %H:%M:%S}] was deleted'.format(tag, created)
+            )
 
 
 def _clean_repository(repository):
-    print('{0} Processing "{1}" {0}'.format("*" * 2, repository["name"]))
+    logger.info('{0} Processing "{1}" {0}'.format("*" * 2, repository["name"]))
 
     dxf = DXF(registry_host, repository["name"], _auth)
     tags = _fetch_tags(dxf)
@@ -87,9 +95,7 @@ def _clean_repository(repository):
                 del tags[tag]
 
         if matched:
-            tags_groups.append(
-                {"rule": tag_rule, "tags": matched,}
-            )
+            tags_groups.append({"rule": tag_rule, "tags": matched})
 
     for tag_group in tags_groups:
         _clean_tags(dxf, tag_group["rule"], tag_group["tags"])
@@ -98,4 +104,4 @@ def _clean_repository(repository):
 for repository in _rules["repositories"]:
     _clean_repository(repository)
 
-print("{0} done {0}".format("*" * 5))
+logger.info("{0} done {0}".format("*" * 5))
