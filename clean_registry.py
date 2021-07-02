@@ -72,10 +72,18 @@ def _clean_tags(dxf, rule, tags):
                 '"{0}" [{1:%Y-%m-%d %H:%M:%S}] will be deleted'.format(tag, created)
             )
         else:
-            dxf.del_alias(tag)
-            logger.info(
-                '"{0}" [{1:%Y-%m-%d %H:%M:%S}] was deleted'.format(tag, created)
-            )
+            try:
+                dxf.del_alias(tag)
+            except HTTPError as err:
+                logger.warning(
+                    'Error on deleting "{0}" [{1:%Y-%m-%d %H:%M:%S}]: {2}'.format(tag,
+                                                                       created, err)
+                )
+            else:
+                logger.info(
+                    '"{0}" [{1:%Y-%m-%d %H:%M:%S}] was deleted'.format(tag,
+                                                                       created)
+                )
 
 
 def _clean_repository(repository):
