@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-
 import json
 import logging
 import os
@@ -10,14 +8,13 @@ import yaml
 from dxf import DXF
 from requests import HTTPError
 
-RULES_FILE = "/etc/cleaner/rules.yml"
-
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO, format="%(asctime)s: %(message)s")
 
 registry_host = os.environ["REGISTRY_HOST"]
 registry_user = os.environ["REGISTRY_USER"]
 registry_password = os.environ["REGISTRY_PASSWORD"]
+rules_file = os.environ.get("RULES") or "/etc/cleaner/rules.yml"
 dry_run = os.environ.get("DRY_RUN", "false") == "true"
 
 logger.info("{0} Parameters {0}".format("*" * 5))
@@ -31,7 +28,7 @@ def _auth(dxf, response):
 
 
 def _read_rules():
-    with open(RULES_FILE) as file_ptr:
+    with open(rules_file) as file_ptr:
         return yaml.safe_load(file_ptr)
 
 
@@ -48,11 +45,7 @@ def _fetch_tags(dxf):
 
             manifest = dxf._request("get", "manifests/" + alias).json()
             created = max(
-                datetime.strptime(
-                    json.loads(history_item["v1Compatibility"])["created"][:-4],
-                    # HACK return non standart date time 2020-06-21T17:07:19.099415601Z
-                    "%Y-%m-%dT%H:%M:%S.%f",
-                )
+                _parse_created(history_item)
                 for history_item in manifest["history"]
             )
 
@@ -63,10 +56,19 @@ def _fetch_tags(dxf):
     return fetched_aliases
 
 
+def _parse_created(history_item):
+    date_str = json.loads(history_item["v1Compatibility"])["created"]
+    date_str = date_str.replace("Z", "")
+    if "." in date_str:
+        date_str = date_str[:date_str.index(".")]
+
+    return datetime.strptime(date_str, "%Y-%m-%dT%H:%M:%S")
+
+
 def _clean_tags(dxf, rule, tags):
     tags = sorted(tags.items(), key=lambda alias: alias[1], reverse=True)
 
-    for tag, created in tags[rule["retain"] :]:
+    for tag, created in tags[rule["retain"]:]:
         if dry_run:
             logger.info(
                 '"{0}" [{1:%Y-%m-%d %H:%M:%S}] will be deleted'.format(tag, created)
@@ -77,7 +79,7 @@ def _clean_tags(dxf, rule, tags):
             except HTTPError as err:
                 logger.warning(
                     'Error on deleting "{0}" [{1:%Y-%m-%d %H:%M:%S}]: {2}'.format(tag,
-                                                                       created, err)
+                                                                                  created, err)
                 )
             else:
                 logger.info(

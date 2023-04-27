@@ -1,5 +1,5 @@
-version=0.1.7
+-include ./config.env
+export
 
-release:
-	git tag -a v${version} -m "v${version}"
-	git push --tags
+up:
+	python clean_registry.py 

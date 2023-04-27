@@ -1,2 +1,4 @@
-test
 .idea
+config.env
+rules.yml
+venv
