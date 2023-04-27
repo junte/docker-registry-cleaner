@@ -19,7 +19,7 @@ docker run \
     -e REGISTRY_HOST=<host> \
     -e REGISTRY_USER=<user> \
     -e REGISTRY_PASSWORD=<password> \
-    junte/registry-cleaner:0.1.5
+    ghcr.io/junte/docker-registry-cleaner:0.1.8
 ```
 
 ## Configuration
