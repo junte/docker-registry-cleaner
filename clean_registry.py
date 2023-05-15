@@ -12,6 +12,7 @@ logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO, format="%(asctime)s: %(message)s")
 
 registry_host = os.environ["REGISTRY_HOST"]
+registry_insecure = "REGISTRY_INSECURE" in os.environ
 
 registry_user = os.environ.get("REGISTRY_USER")
 registry_password = os.environ.get("REGISTRY_PASSWORD")
@@ -101,6 +102,7 @@ def _clean_repository(repository):
         registry_host,
         repository["name"],
         auth=_auth if registry_user and registry_password else None,
+        insecure=registry_insecure,
     )
     tags = _fetch_tags(dxf)
     tags_groups = []
