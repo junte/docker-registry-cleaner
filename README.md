@@ -2,11 +2,13 @@
 
 ## Description
 
-This tool allows cleanup target docker registry. 
+This tool allows cleanup target docker registry.
 You can define rules of how much tags should be retained in each tag group
 
 ### Note
+
 The tool only remove tags - not blobs in docker registry. To free up space on disk, run:
+
 ```shell script
 docker exec <registry container> bin/registry garbage-collect /etc/docker/registry/config.yml
 ```
@@ -24,14 +26,15 @@ docker run \
 
 ## Configuration
 
-| Parameter        | Description       | 
+| Parameter        | Description       |
 | ------------- |---------------|
 | REGISTRY_HOST      | docker registry address |
-| REGISTRY_USER      | docker registry user    |
-| REGISTRY_PASSWORD  | docker registry password |
-| DRY_RUN  | dry run mode. Only show tags which will be deleted  |
+| REGISTRY_USER      | (optional) docker registry user    |
+| REGISTRY_PASSWORD  | (optional) docker registry password |
+| DRY_RUN  |  (optional) dry run mode. Only show tags which will be deleted  |
 
 ## Rules definition
+
 ```yaml
 repositories:
   - name: <repository path>
@@ -45,9 +48,10 @@ repositories:
 ### Example
 
 This config will keep:
-* keep 5 last from `rc` tags, 3 last from `dev` tags in `backend` repository. 
+
+* keep 5 last from `rc` tags, 3 last from `dev` tags in `backend` repository.
   Others will be deleted.
-* keep 2 last in `features` path from `frontend` repository. 
+* keep 2 last in `features` path from `frontend` repository.
   Tags from another parts will not be deleted.
 * other repositories will not be processed
 
@@ -66,4 +70,3 @@ repositories:
       - pattern: "features.*"
         retain: 2
 ```
-
