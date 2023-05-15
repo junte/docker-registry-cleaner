@@ -26,7 +26,7 @@ jobs:
       - name: Build Docker image
         uses: docker/build-push-action@v4
         with:
-          tags: ghcr.io/${{ github.repository }}:0.1.9
+          tags: ghcr.io/${{ github.repository }}:0.1.10
           push: true
           # platforms: linux/arm64,linux/amd64
           cache-from: type=registry,ref=${{ env.IMAGE_NAME_CACHE }}
